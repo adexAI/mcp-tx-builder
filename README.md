@@ -1,35 +1,24 @@
-##TXN-Builder server for lmstudio
+## TXN-Builder server for lmstudio
 
-###Server
+### Server
 to start server 
 
-set 'ETHERSCAN_API_KEY' env with etherscan api key 
+set `ETHERSCAN_API_KEY` env with etherscan api key 
 
 ```
 npm install
 npm run server
 ```
 
-server start listening on 'http://127.0.0.1:3333'
+server start listening on `http://127.0.0.1:3333`
 
-Open in browser 'http://127.0.0.1:3333' to open the FE
+Open in browser `http://127.0.0.1:3333` to open the FE
 
 
-###mcp.json for lmstudio
+### mcp.json for lmstudio
 ```
 {
   "mcpServers": {
-    "coingecko_mcp_local": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@coingecko/coingecko-mcp"
-      ],
-      "env": {
-        "COINGECKO_PRO_API_KEY": "CG-975DVR46YYrWzab81M3VAfta",
-        "COINGECKO_ENVIRONMENT": "pro"
-      }
-    },
     "tx-builder": {
       "command": "node",
       "args": [
@@ -38,8 +27,7 @@ Open in browser 'http://127.0.0.1:3333' to open the FE
       ],
       "env": {
         "RPC_URL": "https://invictus.ambire.com/ethereum",
-        "ETHERSCAN_API_KEY": "PWF3U9P361B7GMFS4ZYBTHC2RT129C6QSK",
-        "apiKey": "PWF3U9P361B7GMFS4ZYBTHC2RT129C6QSK"
+        "ETHERSCAN_API_KEY": "YOUR API KEY"
       }
     }
   }
