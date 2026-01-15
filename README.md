@@ -22,8 +22,8 @@ Open in browser `http://127.0.0.1:3333` to open the FE
     "tx-builder": {
       "command": "node",
       "args": [
-        "/Users/elmoto/Dev/AmbireTech/mcp-tx-builder/node_modules/.bin/tsx",
-        "/Users/elmoto/Dev/AmbireTech/mcp-tx-builder/src/tx-builder-mcp.ts"
+        "${PATH_TO_THE_PACKAGE}/node_modules/.bin/tsx",
+        "${PATH_TO_THE_PACKAGE}/src/tx-builder-mcp.ts"
       ],
       "env": {
         "RPC_URL": "https://invictus.ambire.com/ethereum",
