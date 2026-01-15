@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LM Studio MPC Transaction Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .prompt-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .prompt-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .prompt-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .connect-btn {
+            background: #4caf50;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .connect-btn:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            background: #ee5a5a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .wallet-info {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .wallet-address {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .tx-result {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 MPC Transaction Builder</h1>
+        <p class="subtitle">Generate transactions using AI and send via browser wallet</p>
+        
+        <div id="walletInfo" class="wallet-info hidden">
+            Connected: <span class="wallet-address" id="walletAddress"></span>
+        </div>
+
+        <!-- Prompt Section -->
+        <div class="section">
+            <div class="section-title">1. Encode Transaction</div>
+            <div class="form-group">
+                <label for="prompt">Enter your message for transaction encoding:</label>
+                <textarea id="prompt" placeholder="e.g., Create a transaction to send 0.1 ETH to 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"></textarea>
+            </div>
+            <button type="button" id="promptBtn" class="prompt-btn">
+                Encode Transaction
+            </button>
+        </div>
+
+        <!-- Transaction Result Section -->
+        <div class="section">
+            <div class="section-title">2. Transaction Result</div>
+            <div id="txResult" class="tx-result hidden"></div>
+            <div class="form-group">
+                <label for="to">To Address:</label>
+                <input type="text" id="to" placeholder="0x..." readonly>
+            </div>
+            <div class="form-group">
+                <label for="data">Data (hex):</label>
+                <input type="text" id="data" placeholder="0x..." readonly>
+            </div>
+            <div class="form-group">
+                <label for="value">Value (hex):</label>
+                <input type="text" id="value" placeholder="0x0" readonly>
+            </div>
+        </div>
+
+        <!-- Wallet Section -->
+        <div class="section">
+            <div class="section-title">3. Send Transaction</div>
+            <button type="button" id="connectBtn" class="connect-btn">Connect Wallet</button>
+            <button type="button" id="sendBtn" class="send-btn" disabled>Send Transaction</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const ENCODE_ENDPOINT = 'http://127.0.0.1:3333/encode';
+        
+        let accounts = [];
+        let isConnected = false;
+        let currentTxData = null;
+
+        // Check if wallet is installed
+        function checkWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                return true;
+            } else {
+                showStatus('Please install MetaMask or another Ethereum wallet extension.', 'error');
+                return false;
+            }
+        }
+
+        // Connect wallet
+        async function connectWallet() {
+            if (!checkWallet()) return;
+
+            try {
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                if (accounts.length > 0) {
+                    isConnected = true;
+                    document.getElementById('walletAddress').textContent = accounts[0];
+                    document.getElementById('walletInfo').classList.remove('hidden');
+                    document.getElementById('connectBtn').disabled = true;
+                    updateSendButton();
+                    showStatus('Wallet connected successfully!', 'success');
+                }
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showStatus('Failed to connect wallet: ' + error.message, 'error');
+            }
+        }
+
+        // Call encode endpoint
+        async function callEncodeEndpoint(message) {
+            try {
+                const requestBody = {
+                    message: message
+                };
+
+                const jsonBody = JSON.stringify(requestBody);
+                console.log('Sending request to encode endpoint:', requestBody);
+                console.log('JSON body:', jsonBody);
+
+                const response = await fetch(ENCODE_ENDPOINT, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: jsonBody
+                });
+
+                console.log('Response status:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    let errorText = '';
+                    try {
+                        errorText = await response.text();
+                        console.error('Error response body:', errorText);
+                    } catch (e) {
+                        console.error('Could not read error response:', e);
+                    }
+                    throw new Error(`Encode endpoint error: ${response.status} ${response.statusText}. ${errorText || 'No error details available'}`);
+                }
+
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                return data;
+            } catch (error) {
+                console.error('Error calling encode endpoint:', error);
+                if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                    throw new Error('Network error: Please check that the encode server is running at http://127.0.0.1:3333');
+                }
+                throw error;
+            }
+        }
+
+        // Validate transaction data
+        function validateTransactionData(txData) {
+            try {
+                // Validate structure
+                if (!txData.to || txData.data === undefined) {
+                    throw new Error('Invalid transaction format: missing "to" or "data" field');
+                }
+
+                // Validate "to" address
+                if (!txData.to.startsWith('0x') || txData.to.length !== 42) {
+                    throw new Error('Invalid "to" address format');
+                }
+
+                // Validate "data" field
+                if (txData.data && !txData.data.startsWith('0x')) {
+                    throw new Error('Invalid "data" format: must start with 0x');
+                }
+
+                // Validate "value" field if present
+                if (txData.value !== undefined && !txData.value.startsWith('0x')) {
+                    throw new Error('Invalid "value" format: must start with 0x');
+                }
+
+                return txData;
+            } catch (error) {
+                console.error('Error validating transaction data:', error);
+                throw new Error('Failed to validate transaction data: ' + error.message);
+            }
+        }
+
+        // Start MPC tx-builder
+        async function startMPCTxBuilder(message) {
+            try {
+                showStatus('Encoding transaction...', 'info');
+                
+                // Call encode endpoint
+                const txData = await callEncodeEndpoint(message);
+                
+                showStatus('Validating transaction data...', 'info');
+                
+                // Validate the response
+                const validatedTxData = validateTransactionData(txData);
+                
+                // Store transaction data
+                currentTxData = validatedTxData;
+                
+                // Display results
+                document.getElementById('to').value = validatedTxData.to;
+                document.getElementById('data').value = validatedTxData.data || '0x';
+                document.getElementById('value').value = validatedTxData.value || '0x0';
+                document.getElementById('txResult').textContent = JSON.stringify(validatedTxData, null, 2);
+                document.getElementById('txResult').classList.remove('hidden');
+                
+                showStatus('Transaction encoded successfully!', 'success');
+                updateSendButton();
+                
+                return validatedTxData;
+            } catch (error) {
+                console.error('Error in MPC tx-builder:', error);
+                showStatus('Failed to encode transaction: ' + error.message, 'error');
+                throw error;
+            }
+        }
+
+        // Update send button state
+        function updateSendButton() {
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = !isConnected || !currentTxData;
+        }
+
+        // Send transaction to wallet
+        async function sendTransaction() {
+            if (!isConnected || accounts.length === 0) {
+                showStatus('Please connect your wallet first.', 'error');
+                return;
+            }
+
+            if (!currentTxData) {
+                showStatus('Please generate a transaction first.', 'error');
+                return;
+            }
+
+            try {
+                const transactionParameters = {
+                    from: accounts[0],
+                    to: currentTxData.to,
+                    data: currentTxData.data || '0x',
+                    value: currentTxData.value || '0x0'
+                };
+
+                showStatus('Sending transaction...', 'info');
+
+                // Send transaction via wallet extension
+                const txHash = await window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [transactionParameters],
+                });
+
+                showStatus(`Transaction sent! Hash: ${txHash}`, 'success');
+                
+                // Optionally reset
+                // currentTxData = null;
+                // document.getElementById('prompt').value = '';
+            } catch (error) {
+                console.error('Error sending transaction:', error);
+                if (error.code === 4001) {
+                    showStatus('Transaction rejected by user.', 'error');
+                } else {
+                    showStatus('Failed to send transaction: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Handle prompt button click
+        document.getElementById('promptBtn').addEventListener('click', async () => {
+            const prompt = document.getElementById('prompt').value.trim();
+            
+            if (!prompt) {
+                showStatus('Please enter a message.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('promptBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Encoding...';
+
+            try {
+                await startMPCTxBuilder(prompt);
+            } catch (error) {
+                // Error already shown in startMPCTxBuilder
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        });
+
+        // Event listeners
+        document.getElementById('connectBtn').addEventListener('click', connectWallet);
+        document.getElementById('sendBtn').addEventListener('click', sendTransaction);
+
+        // Check if wallet is already connected on page load
+        window.addEventListener('load', async () => {
+            if (checkWallet()) {
+                try {
+                    accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        isConnected = true;
+                        document.getElementById('walletAddress').textContent = accounts[0];
+                        document.getElementById('walletInfo').classList.remove('hidden');
+                        document.getElementById('connectBtn').disabled = true;
+                        updateSendButton();
+                    }
+                } catch (error) {
+                    console.error('Error checking accounts:', error);
+                }
+            }
+        });
+
+        // Listen for account changes
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', (newAccounts) => {
+                if (newAccounts.length === 0) {
+                    isConnected = false;
+                    accounts = [];
+                    document.getElementById('walletInfo').classList.add('hidden');
+                    document.getElementById('connectBtn').disabled = false;
+                    updateSendButton();
+                    showStatus('Wallet disconnected.', 'info');
+                } else {
+                    accounts = newAccounts;
+                    document.getElementById('walletAddress').textContent = accounts[0];
+                }
+            });
+        }
+    </script>
+</body>
+</html>
