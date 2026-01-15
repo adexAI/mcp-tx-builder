@@ -1,6 +1,6 @@
-## TXN-Builder server for lmstudio
+##TXN-Builder server for lmstudio
 
-### Server
+###Server
 to start server 
 
 set 'ETHERSCAN_API_KEY' env with etherscan api key 
@@ -15,7 +15,7 @@ server start listening on 'http://127.0.0.1:3333'
 Open in browser 'http://127.0.0.1:3333' to open the FE
 
 
-### mcp.json for lmstudio
+###mcp.json for lmstudio
 ```
 {
   "mcpServers": {
