@@ -24,7 +24,6 @@ const PORT = 3333
 const rl = createInterface({ input: process.stdin, output: process.stdout })
 const client = new LMStudioClient({})
 const model = await client.llm.model("openai/gpt-oss-20b")
-const chat = Chat.empty()
 
 /** Tool: encodeTransaction */
 const createTransaction = tool({
@@ -39,25 +38,30 @@ const createTransaction = tool({
     valueEth: z.string().optional(),        // "0.01"
   },
   implementation: ({ to, abi, signature, functionName, args, valueEth }) => {
+    console.log({ to, abi, signature, functionName, args, valueEth });
+    
     const toAddr = getAddress(to)
 
     let iface: Interface
     let fnName: string
 
-    if (abi && functionName) {
+    const value = valueEth ? parseEther(valueEth).toString(16) : "0x0"
+
+    if (abi && abi.length > 0 && functionName) {
       iface = new Interface(abi)
       fnName = functionName
-    } else if (signature) {
+    } else if (signature && signature !== '') {
       const i = signature.indexOf("(")
       if (i === -1) throw new Error("Invalid signature expected name(types)")
       fnName = signature.slice(0, i)
       iface = new Interface([`function ${signature}`])
+    } else if (valueEth !== '' && toAddr){
+      return { to: toAddr, data: '0x', value:`0x${value}` }
     } else {
       throw new Error("Provide either {abi + functionName} or {signature}")
     }
 
     const data = iface.encodeFunctionData(fnName, args)
-    const value = valueEth ? parseEther(valueEth).toString() : "0x0"
 
     return { to: toAddr, data, value }
   },
@@ -112,6 +116,7 @@ const getAbi = tool({
 
 app.post("/encode", async (req: any, res: any) => {
   const { message } = req.body
+  const chat = Chat.empty()
   
   chat.append("system", 'Find the ABI by using getABI tool, by passing the chainId and contract address.')
   chat.append("system", 'Do NOT assume functions ABI and data. All the time use getAbi tool.')
