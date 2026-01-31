@@ -45,7 +45,7 @@ const createTransaction = tool({
     let iface: Interface
     let fnName: string
 
-    const value = valueEth ? parseEther(valueEth).toString(16) : "0x0"
+    const value = valueEth ? `0x${parseEther(valueEth).toString(16)}` : "0x0"
 
     if (abi && abi.length > 0 && functionName) {
       iface = new Interface(abi)
@@ -56,7 +56,7 @@ const createTransaction = tool({
       fnName = signature.slice(0, i)
       iface = new Interface([`function ${signature}`])
     } else if (valueEth !== '' && toAddr){
-      return { to: toAddr, data: '0x', value:`0x${value}` }
+      return { to: toAddr, data: '0x', value }
     } else {
       throw new Error("Provide either {abi + functionName} or {signature}")
     }
