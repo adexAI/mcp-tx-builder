@@ -155,8 +155,10 @@ const getAbi = tool({
 
 app.post("/encode", async (req: any, res: any) => {
   const { message } = req.body
-  const chat = Chat.empty()
   
+  const chat = Chat.empty()
+  chat.append("system", `Chain ID: 1`)
+  chat.append("system", `USDC contract address: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48`)
   chat.append("system", 'Find the related contracts by using relatedContracts tool, by passing the chainId and contract address.')
   chat.append("system", 'Find the ABI by using getABI tool, by passing the chainId and contract address.')
   chat.append("system", 'Use the related contracts to find the function and the parameters. Then check the parametest from user text and try for provide it on the right way to the createTransaction tool.')
