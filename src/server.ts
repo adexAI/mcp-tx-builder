@@ -6,7 +6,8 @@ import { createInterface } from "readline/promises"
 import express from "express"
 import path from "path"
 import { fileURLToPath } from "url";
-import { getAbiFromEtherscan } from "./lib/getAbi.js";
+import { getAbiFromEtherscan } from "./lib/getAbi.js"
+import { getRelatedContracts, getRelatedContractsByProtocolName } from "./lib/relatedContracts.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,6 +70,28 @@ const createTransaction = tool({
 
     return { to: toAddr, data, value }
   },
+})
+
+const relatedContracts = tool({
+  name: "relatedContracts",
+  description: "return the related contracts for ethereum contract by providing the chain id and contract address",
+  parameters: {
+    chainId: z.union([z.string(), z.number()]).optional(),
+    address: z.string().optional(),
+    protocolName: z.string().optional(),
+  },
+  implementation: async ({ chainId, address, protocolName }) => {
+    const chainid = String(chainId ?? 1)
+    
+    if (address) {
+      const addr = getAddress(address)
+      return getRelatedContracts(chainid, addr)
+    }
+
+    if (protocolName) {
+      return getRelatedContractsByProtocolName(protocolName)
+    }
+  }
 })
 
 /** Tool: getABI (Etherscan v2) */
@@ -134,7 +157,10 @@ app.post("/encode", async (req: any, res: any) => {
   const { message } = req.body
   const chat = Chat.empty()
   
+  chat.append("system", 'Find the related contracts by using relatedContracts tool, by passing the chainId and contract address.')
   chat.append("system", 'Find the ABI by using getABI tool, by passing the chainId and contract address.')
+  chat.append("system", 'Use the related contracts to find the function and the parameters. Then check the parametest from user text and try for provide it on the right way to the createTransaction tool.')
+  // chat.append("system", 'All the time use createTransaction tool and provide ONLY a valid JSON object in this exact format: {"to": "0x...", "data": "0x..."} that returned by createTransaction tool.')
   chat.append("system", 'Do NOT assume functions ABI and data. All the time use getAbi tool.')
   chat.append("system", 'Use the ABI to find the function and the parameters. Then check the parametest from user text and try for provide it on the right way to the createTransaction tool.')
   chat.append("system", 'All the time use createTransaction tool and provide ONLY a valid JSON object in this exact format: {"to": "0x...", "data": "0x..."} that returned by createTransaction tool.')
@@ -143,7 +169,7 @@ app.post("/encode", async (req: any, res: any) => {
 
 
   let finalAssistantMessage: string = ''
-  await model.act(chat, [getAbi, createTransaction], {
+  await model.act(chat, [getAbi, createTransaction, relatedContracts], {
     onMessage: (message) => {
       // This is called for FULL messages only
       if (message.getRole() === "tool") {
