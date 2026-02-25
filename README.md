@@ -23,7 +23,7 @@ Open in browser `http://127.0.0.1:3333` to open the FE
       "command": "node",
       "args": [
         "${PATH_TO_THE_PACKAGE}/node_modules/.bin/tsx",
-        "${PATH_TO_THE_PACKAGE}/src/tx-builder-mcp.ts"
+        "${PATH_TO_THE_PACKAGE}/src/mcp/tx-builder-mcp.ts"
       ],
       "env": {
         "RPC_URL": "https://invictus.ambire.com/ethereum",

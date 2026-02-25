@@ -5,10 +5,13 @@ import { Interface, getAddress, parseEther } from "ethers"
 import { createInterface } from "readline/promises"
 import express from "express"
 import path from "path"
-import { fileURLToPath } from "url"
+import { fileURLToPath } from "url";
+import { getAbiFromEtherscan } from "./lib/getAbi.js";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const ABIS = {} 
 
 const app = express()
 app.use(express.json())
@@ -31,19 +34,20 @@ const createTransaction = tool({
   description: "Encode EVM tx calldata from ABI or function signature.",
   parameters: {
     to: z.string(),
-    abi: z.array(z.any()),
+    // abi: z.array(z.any()),
     signature: z.string(),       // "transfer(address,uint256)"
     functionName: z.string(),    // required if abi is provided
     args: z.array(z.any()).default([]),
     valueEth: z.string().optional(),        // "0.01"
   },
-  implementation: ({ to, abi, signature, functionName, args, valueEth }) => {
-    console.log({ to, abi, signature, functionName, args, valueEth });
+  implementation: ({ to, signature, functionName, args, valueEth }) => {
+    console.log({ to, signature, functionName, args, valueEth });
     
     const toAddr = getAddress(to)
 
     let iface: Interface
     let fnName: string
+    const abi = ABIS[toAddr.toString() as keyof typeof ABIS] as object[];
 
     const value = valueEth ? `0x${parseEther(valueEth).toString(16)}` : "0x0"
 
@@ -61,7 +65,7 @@ const createTransaction = tool({
       throw new Error("Provide either {abi + functionName} or {signature}")
     }
 
-    const data = iface.encodeFunctionData(fnName, args)
+    const data = iface.encodeFunctionData(fnName, args.map((arg: any) => arg.toString()))
 
     return { to: toAddr, data, value }
   },
@@ -78,24 +82,36 @@ const getAbi = tool({
   implementation: async ({ chainId, address }) => {
     const chainid = String(chainId ?? 1)
     const addr = getAddress(address)
-    const apiKey = process.env.ETHERSCAN_API_KEY
-    if (!apiKey) throw new Error("Missing ETHERSCAN_API_KEY env var")
+    
+    const { abi } = await getAbiFromEtherscan(chainid, addr)
 
-    const url = new URL("https://api.etherscan.io/v2/api")
-    url.searchParams.set("chainid", chainid)
-    url.searchParams.set("module", "contract")
-    url.searchParams.set("action", "getabi")
-    url.searchParams.set("address", addr)
-    url.searchParams.set("apikey", apiKey)
+    // Add index signature to ABIS and type it to avoid TS error
+    // @ts-ignore
+    ABIS[addr.toString()] = abi
 
-    const res = await fetch(url)
-    if (!res.ok) throw new Error(`Etherscan HTTP ${res.status}`)
-
-    const json = (await res.json()) as { status: string; message: string; result: string }
-    if (json.status !== "1") throw new Error(`Etherscan error: ${json.message}: ${json.result}`)
-
-    const abi = JSON.parse(json.result)
-    return { abi }
+    const solidityAbi: string[] = []
+    if (abi && Array.isArray(abi)) {
+      abi.forEach((fn: any) => {
+        if (
+          fn.type === "function" &&
+          typeof fn.name === "string" &&
+          Array.isArray(fn.inputs) &&
+          Array.isArray(fn.outputs) &&
+          typeof fn.stateMutability === "string"
+        ) {
+          const inputs = fn.inputs.map((i: any) =>
+            `${i.type}${i.name ? " " + i.name : ""}`
+          ).join(', ');
+          const outputs = fn.outputs.map((o: any) => o.type).join(', ')
+          const soliditySig =
+            `function ${fn.name}(${inputs}) public ${fn.stateMutability}` +
+            (outputs.length > 0 ? ` returns(${outputs})` : '')
+          solidityAbi.push(soliditySig);
+        }
+      })
+    }
+   console.log({solidityAbi})
+    return { solidityAbi }
   }
 })
 
