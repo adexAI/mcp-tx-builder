@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LM Studio MPC Transaction Builder</title>
+    <title>LM Studio MCP Transaction Builder</title>
     <style>
         * {
             margin: 0;
@@ -236,7 +236,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🤖 MPC Transaction Builder</h1>
+        <h1>🤖 MCP Transaction Builder</h1>
         <p class="subtitle">Generate transactions using AI and send via browser wallet</p>
         
         <div id="walletInfo" class="wallet-info hidden">
@@ -325,8 +325,8 @@
         async function callEncodeEndpoint(message) {
             try {
                 const requestBody = {
-                    message: message
-                };
+                    message: `${message}\n\nCurrent user account address: ${accounts[0]}`
+                }
 
                 const jsonBody = JSON.stringify(requestBody);
                 console.log('Sending request to encode endpoint:', requestBody);
@@ -398,8 +398,8 @@
             }
         }
 
-        // Start MPC tx-builder
-        async function startMPCTxBuilder(message) {
+        // Start MCP tx-builder
+        async function startMCPTxBuilder(message) {
             try {
                 showStatus('Encoding transaction...', 'info');
                 
@@ -426,7 +426,7 @@
                 
                 return validatedTxData;
             } catch (error) {
-                console.error('Error in MPC tx-builder:', error);
+                console.error('Error in MCP tx-builder:', error);
                 showStatus('Failed to encode transaction: ' + error.message, 'error');
                 throw error;
             }
@@ -511,9 +511,9 @@
             btn.innerHTML = '<span class="loading"></span>Encoding...';
 
             try {
-                await startMPCTxBuilder(prompt);
+                await startMCPTxBuilder(prompt);
             } catch (error) {
-                // Error already shown in startMPCTxBuilder
+                // Error already shown in startMCPTxBuilder
             } finally {
                 btn.disabled = false;
                 btn.textContent = originalText;
